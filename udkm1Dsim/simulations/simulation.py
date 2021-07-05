@@ -115,7 +115,7 @@ class Simulation:
             filename = os.path.basename(full_filename)
             self.disp_message('{:s} saved to file:\n\t {:s}'.format(var_name, filename))
 
-    def conv_with_function(self, y, x, handle):
+    def conv_with_function(self, y, x, handle, truncate=False):
         """conv_with_function
 
         Convolutes the array :math:`y(x)` with a function given by the handle
@@ -125,6 +125,7 @@ class Simulation:
             y (ndarray[float]): y data.
             x (ndarray[float]): x data.
             handle (@lamdba): convolution function.
+            truncate (boolean): truncate handle where <0.1% max. to speed up convolution
 
         Returns:
             y_conv (ndarray[float]): convoluted data.
@@ -135,6 +136,10 @@ class Simulation:
         y_lin = np.interp(x_lin, x, y)
         x0 = np.mean(x_lin)
         y_handle = handle(x_lin-x0)
+
+        if truncate == True:
+            mask = np.abs(y_handle) >= 0.001*np.amax(y_handle)
+            y_handle = y_handle[mask]
 
         temp = np.convolve(y_lin, y_handle/y_handle.sum(), mode="same")
 
